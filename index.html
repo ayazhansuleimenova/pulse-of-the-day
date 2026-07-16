@@ -1115,8 +1115,31 @@
   }
 
   // ---------- Daily news ----------
+  // Source: Kursiv Media Казахстан (kz.kursiv.media) — деловое издание РК.
+  // Оставляем только категории про финансы/экономику и дополнительно
+  // отсеиваем заголовки с политической/религиозной лексикой.
 
-  var NEWS_FEED_URL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://lenta.ru/rss/top7");
+  var NEWS_FEED_URL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://kz.kursiv.media/feed/");
+
+  var NEWS_CATEGORY_ALLOWLIST = ["банки и финансы", "экономика", "финансы", "ресурсы", "business", "markets", "report"];
+
+  var NEWS_TITLE_BLOCKLIST = [
+    "президент", "парламент", "депутат", "выборы", "партия", "партий", "курултай",
+    "ислам", "христ", "церков", "мечет", "религ", "патриарх"
+  ];
+
+  function isFinanceNewsItem(item){
+    var categories = (item.categories || []).map(function(c){ return c.toLowerCase(); });
+    var matchesCategory = categories.some(function(c){
+      return NEWS_CATEGORY_ALLOWLIST.indexOf(c) !== -1;
+    });
+    if(!matchesCategory) return false;
+    var title = (item.title || "").toLowerCase();
+    var hasBlockedWord = NEWS_TITLE_BLOCKLIST.some(function(word){
+      return title.indexOf(word) !== -1;
+    });
+    return !hasBlockedWord;
+  }
 
   function loadDailyNews(){
     var chip = document.getElementById("newsChip");
@@ -1125,8 +1148,9 @@
     fetch(NEWS_FEED_URL)
       .then(function(res){ return res.ok ? res.json() : Promise.reject(new Error("bad response")); })
       .then(function(data){
-        if(data.status === "ok" && data.items && data.items.length){
-          var item = data.items[0];
+        if(data.status !== "ok" || !data.items) return;
+        var item = data.items.find(isFinanceNewsItem);
+        if(item){
           titleEl.textContent = item.title;
           chip.href = item.link;
           chip.style.display = "inline-flex";
