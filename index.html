@@ -128,6 +128,49 @@
     font-size:14px;
   }
 
+  .news-chip{
+    margin:18px auto 0;
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    max-width:100%;
+    padding:9px 16px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--glass-border);
+    text-decoration:none;
+    cursor:pointer;
+    transition:background 0.15s ease, transform 0.15s ease;
+  }
+  .news-chip:hover{
+    background:rgba(255,255,255,0.08);
+    transform:translateY(-1px);
+  }
+  .news-chip:focus-visible{
+    outline:2px solid var(--accent-cool-2);
+    outline-offset:2px;
+  }
+  .news-label{
+    flex-shrink:0;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:0.06em;
+    color:var(--accent-warm);
+    padding-right:10px;
+    border-right:1px solid var(--glass-border);
+  }
+  .news-title{
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:var(--text-secondary);
+    font-size:13px;
+  }
+  @media (max-width:520px){
+    .news-title{max-width:200px;}
+  }
+
   @keyframes fadeUp{
     from{opacity:0; transform:translateY(14px);}
     to{opacity:1; transform:translateY(0);}
@@ -592,6 +635,10 @@
   <header class="top">
     <h1>Пульс дня</h1>
     <p>Твоё самочувствие и задачи — за один взгляд</p>
+    <a class="news-chip" id="newsChip" href="#" target="_blank" rel="noopener noreferrer" style="display:none;">
+      <span class="news-label">Новость дня</span>
+      <span class="news-title" id="newsTitle"></span>
+    </a>
   </header>
 
   <section class="stats-grid" aria-label="Статистика">
@@ -1067,6 +1114,29 @@
     showToast("Все данные удалены");
   }
 
+  // ---------- Daily news ----------
+
+  var NEWS_FEED_URL = "https://api.rss2json.com/v1/api.json?rss_url=" + encodeURIComponent("https://lenta.ru/rss/top7");
+
+  function loadDailyNews(){
+    var chip = document.getElementById("newsChip");
+    var titleEl = document.getElementById("newsTitle");
+    if(!window.fetch) return;
+    fetch(NEWS_FEED_URL)
+      .then(function(res){ return res.ok ? res.json() : Promise.reject(new Error("bad response")); })
+      .then(function(data){
+        if(data.status === "ok" && data.items && data.items.length){
+          var item = data.items[0];
+          titleEl.textContent = item.title;
+          chip.href = item.link;
+          chip.style.display = "inline-flex";
+        }
+      })
+      .catch(function(err){
+        console.warn("Не удалось загрузить новость дня:", err);
+      });
+  }
+
   // ---------- Init ----------
 
   function init(){
@@ -1096,6 +1166,7 @@
     renderHistory();
     renderHeatmap();
     renderTasks();
+    loadDailyNews();
 
     var loadingScreen = document.getElementById("loadingScreen");
     var app = document.getElementById("app");
