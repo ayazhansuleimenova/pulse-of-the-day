@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Пульс дня</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a0e1a;
+    --bg-deep-2:#0d1224;
+    --glass:rgba(255,255,255,0.05);
+    --glass-border:rgba(255,255,255,0.10);
+    --glass-strong:rgba(255,255,255,0.08);
+    --text-primary:#eef1fb;
+    --text-secondary:#9aa3c0;
+    --text-muted:#6b7394;
+    --accent-cool:#5b8cff;
+    --accent-cool-2:#7fb0ff;
+    --accent-warm:#ffb454;
+    --accent-warm-2:#ffd28a;
+    --accent-good:#4ade80;
+    --danger:#ff6b6b;
+    --radius-lg:20px;
+    --radius-md:14px;
+    --radius-sm:10px;
+    --shadow-soft:0 8px 32px rgba(0,0,0,0.35);
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+  }
+
+  body{
+    background:
+      radial-gradient(ellipse 60% 40% at 20% 10%, rgba(91,140,255,0.16), transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 15%, rgba(255,180,84,0.10), transparent 60%),
+      radial-gradient(ellipse 60% 50% at 50% 100%, rgba(91,140,255,0.10), transparent 60%),
+      linear-gradient(180deg, var(--bg-deep), var(--bg-deep-2));
+    background-attachment:fixed;
+    color:var(--text-primary);
+    font-family:'Inter', system-ui, sans-serif;
+    min-height:100vh;
+    position:relative;
+    overflow-x:hidden;
+  }
+
+  .aurora{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    pointer-events:none;
+    overflow:hidden;
+  }
+  .aurora span{
+    position:absolute;
+    border-radius:50%;
+    filter:blur(90px);
+    opacity:0.35;
+    will-change:transform;
+  }
+  .aurora span:nth-child(1){
+    width:420px;height:420px;
+    background:var(--accent-cool);
+    top:-100px;left:-80px;
+    animation:driftA 26s ease-in-out infinite;
+  }
+  .aurora span:nth-child(2){
+    width:360px;height:360px;
+    background:var(--accent-warm);
+    top:10%;right:-100px;
+    animation:driftB 32s ease-in-out infinite;
+  }
+  .aurora span:nth-child(3){
+    width:480px;height:480px;
+    background:var(--accent-cool-2);
+    bottom:-160px;left:30%;
+    animation:driftC 38s ease-in-out infinite;
+  }
+  @keyframes driftA{
+    0%,100%{transform:translate(0,0);}
+    50%{transform:translate(60px,40px);}
+  }
+  @keyframes driftB{
+    0%,100%{transform:translate(0,0);}
+    50%{transform:translate(-50px,60px);}
+  }
+  @keyframes driftC{
+    0%,100%{transform:translate(0,0);}
+    50%{transform:translate(40px,-50px);}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .aurora span{animation:none !important;}
+    *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+  }
+
+  .wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:32px 20px 80px;
+  }
+
+  header.top{
+    text-align:center;
+    margin-bottom:32px;
+    animation:fadeUp 0.5s ease both;
+  }
+  header.top h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:clamp(28px,4vw,38px);
+    font-weight:700;
+    margin:0 0 6px;
+    background:linear-gradient(90deg, var(--accent-cool-2), var(--accent-warm));
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  header.top p{
+    color:var(--text-secondary);
+    margin:0;
+    font-size:14px;
+  }
+
+  @keyframes fadeUp{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .glass{
+    background:var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-lg);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+    box-shadow:var(--shadow-soft);
+    position:relative;
+  }
+  .glass::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    padding:1px;
+    background:linear-gradient(135deg, rgba(255,255,255,0.18), rgba(255,255,255,0) 40%, rgba(255,255,255,0.06) 100%);
+    -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite:xor;
+    mask-composite:exclude;
+    pointer-events:none;
+  }
+
+  .stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:14px;
+    margin-bottom:24px;
+    animation:fadeUp 0.5s ease 0.05s both;
+  }
+  .stat-card{
+    padding:18px 16px;
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .stat-card .value{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:28px;
+    font-weight:700;
+    line-height:1.1;
+    min-height:32px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .stat-card .label{
+    font-size:12px;
+    color:var(--text-secondary);
+    margin-top:6px;
+    font-family:'JetBrains Mono', monospace;
+    letter-spacing:0.02em;
+  }
+  .stat-card.streak .value{color:var(--accent-warm);}
+  .stat-card.mood .value{color:var(--accent-cool-2);}
+  .stat-card.energy .value{color:var(--accent-good);}
+
+  .grid-2{
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:20px;
+    margin-bottom:20px;
+  }
+
+  .card{
+    padding:22px;
+    animation:fadeUp 0.5s ease 0.1s both;
+  }
+  .card h2{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:17px;
+    margin:0 0 16px;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .card h2 .count{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--text-secondary);
+    font-weight:400;
+  }
+
+  .picker-group{margin-bottom:16px;}
+  .picker-label{
+    font-size:13px;
+    color:var(--text-secondary);
+    margin-bottom:8px;
+    display:block;
+  }
+  .picker-row{
+    display:flex;
+    gap:8px;
+  }
+  .picker-btn{
+    flex:1;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-sm);
+    padding:10px 4px;
+    color:var(--text-secondary);
+    font-size:20px;
+    cursor:pointer;
+    transition:transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+  }
+  .picker-btn small{
+    font-size:10px;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .picker-btn:hover{
+    transform:translateY(-2px);
+    background:rgba(255,255,255,0.06);
+  }
+  .picker-btn:focus-visible{
+    outline:2px solid var(--accent-cool-2);
+    outline-offset:2px;
+  }
+  .picker-btn.selected{
+    border-color:var(--accent-cool-2);
+    background:rgba(91,140,255,0.16);
+    color:var(--text-primary);
+  }
+  .picker-btn.selected.energy-selected{
+    border-color:var(--accent-warm);
+    background:rgba(255,180,84,0.14);
+  }
+
+  textarea.note-input{
+    width:100%;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-sm);
+    color:var(--text-primary);
+    font-family:'Inter', sans-serif;
+    font-size:13px;
+    padding:10px 12px;
+    resize:vertical;
+    min-height:44px;
+    margin-bottom:14px;
+  }
+  textarea.note-input:focus-visible, input:focus-visible{
+    outline:2px solid var(--accent-cool-2);
+    outline-offset:1px;
+  }
+
+  .btn{
+    border:none;
+    border-radius:var(--radius-sm);
+    padding:11px 18px;
+    font-family:'Inter', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+    transition:transform 0.15s ease, opacity 0.15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:focus-visible{outline:2px solid var(--accent-cool-2); outline-offset:2px;}
+  .btn:disabled{opacity:0.4; cursor:not-allowed; transform:none;}
+  .btn-primary{
+    background:linear-gradient(90deg, var(--accent-cool), var(--accent-cool-2));
+    color:#0a0e1a;
+    width:100%;
+  }
+  .btn-ghost{
+    background:transparent;
+    border:1px solid var(--glass-border);
+    color:var(--text-secondary);
+  }
+  .btn-danger{
+    background:transparent;
+    border:1px solid rgba(255,107,107,0.4);
+    color:var(--danger);
+  }
+
+  .save-status{
+    font-size:12px;
+    margin-top:10px;
+    text-align:center;
+    min-height:16px;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .save-status.ok{color:var(--accent-good);}
+  .save-status.err{color:var(--danger);}
+
+  /* Tasks */
+  .task-input-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  .task-input-row input{
+    flex:1;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-sm);
+    color:var(--text-primary);
+    font-family:'Inter', sans-serif;
+    font-size:14px;
+    padding:11px 14px;
+  }
+  .task-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:340px;
+    overflow-y:auto;
+  }
+  .task-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:var(--radius-sm);
+    background:rgba(255,255,255,0.02);
+    border:1px solid transparent;
+    transition:background 0.15s ease;
+  }
+  .task-item:hover{background:rgba(255,255,255,0.05);}
+  .task-checkbox{
+    width:20px;
+    height:20px;
+    flex-shrink:0;
+    border-radius:6px;
+    border:1.5px solid var(--glass-border);
+    background:transparent;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--accent-good);
+    font-size:13px;
+  }
+  .task-checkbox.done{
+    background:rgba(74,222,128,0.15);
+    border-color:var(--accent-good);
+  }
+  .task-text{
+    flex:1;
+    font-size:14px;
+    cursor:pointer;
+    word-break:break-word;
+  }
+  .task-text.done{
+    text-decoration:line-through;
+    color:var(--text-muted);
+  }
+  .task-delete{
+    background:transparent;
+    border:none;
+    color:var(--text-muted);
+    cursor:pointer;
+    font-size:16px;
+    padding:4px 6px;
+    border-radius:6px;
+    line-height:1;
+  }
+  .task-delete:hover{color:var(--danger); background:rgba(255,107,107,0.1);}
+  .task-delete:focus-visible{outline:2px solid var(--accent-cool-2);}
+
+  .empty-state{
+    text-align:center;
+    color:var(--text-muted);
+    font-size:13px;
+    padding:24px 12px;
+  }
+
+  /* 7-day history */
+  .history-row{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .history-item{
+    display:grid;
+    grid-template-columns:70px 26px 1fr 30px;
+    align-items:center;
+    gap:10px;
+  }
+  .history-item .day-label{
+    font-size:12px;
+    color:var(--text-secondary);
+    font-family:'JetBrains Mono', monospace;
+  }
+  .history-item .day-emoji{font-size:16px; text-align:center;}
+  .history-bar-track{
+    height:8px;
+    border-radius:6px;
+    background:rgba(255,255,255,0.05);
+    overflow:hidden;
+  }
+  .history-bar-fill{
+    height:100%;
+    border-radius:6px;
+    background:linear-gradient(90deg, var(--accent-cool), var(--accent-warm));
+    transition:width 0.4s ease;
+  }
+  .history-item .day-val{
+    font-size:12px;
+    color:var(--text-muted);
+    font-family:'JetBrains Mono', monospace;
+    text-align:right;
+  }
+
+  /* Heatmap */
+  .heatmap-grid{
+    display:grid;
+    grid-template-columns:repeat(10, 1fr);
+    gap:6px;
+  }
+  .heat-cell{
+    aspect-ratio:1;
+    border-radius:6px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid rgba(255,255,255,0.05);
+    cursor:default;
+    position:relative;
+  }
+  .heat-cell[data-has="1"]:hover{
+    transform:scale(1.15);
+    z-index:2;
+  }
+  .heat-tooltip{
+    position:absolute;
+    bottom:120%;
+    left:50%;
+    transform:translateX(-50%);
+    background:#161b2e;
+    border:1px solid var(--glass-border);
+    border-radius:8px;
+    padding:6px 9px;
+    font-size:11px;
+    font-family:'JetBrains Mono', monospace;
+    white-space:nowrap;
+    color:var(--text-primary);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity 0.15s ease;
+    z-index:5;
+    box-shadow:0 4px 16px rgba(0,0,0,0.4);
+  }
+  .heat-cell:hover .heat-tooltip{opacity:1;}
+
+  .danger-zone{
+    margin-top:24px;
+    text-align:center;
+    animation:fadeUp 0.5s ease 0.15s both;
+  }
+
+  .loading-screen{
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:14px;
+    background:var(--bg-deep);
+    z-index:100;
+    transition:opacity 0.3s ease;
+  }
+  .spinner{
+    width:36px;
+    height:36px;
+    border-radius:50%;
+    border:3px solid rgba(255,255,255,0.1);
+    border-top-color:var(--accent-cool-2);
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .loading-screen p{color:var(--text-secondary); font-size:13px; font-family:'JetBrains Mono', monospace;}
+
+  .toast{
+    position:fixed;
+    bottom:24px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:#161b2e;
+    border:1px solid var(--glass-border);
+    border-radius:var(--radius-sm);
+    padding:12px 20px;
+    font-size:13px;
+    color:var(--text-primary);
+    box-shadow:var(--shadow-soft);
+    opacity:0;
+    transition:opacity 0.25s ease, transform 0.25s ease;
+    pointer-events:none;
+    z-index:50;
+  }
+  .toast.show{
+    opacity:1;
+    transform:translateX(-50%) translateY(0);
+  }
+  .toast.err{border-color:rgba(255,107,107,0.4); color:var(--danger);}
+
+  .modal-overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(5,7,15,0.6);
+    backdrop-filter:blur(4px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:60;
+    padding:20px;
+  }
+  .modal-overlay.show{display:flex;}
+  .modal{
+    max-width:360px;
+    padding:24px;
+    text-align:center;
+  }
+  .modal h3{
+    font-family:'Space Grotesk', sans-serif;
+    margin:0 0 10px;
+    font-size:18px;
+  }
+  .modal p{
+    color:var(--text-secondary);
+    font-size:13px;
+    margin:0 0 20px;
+  }
+  .modal-actions{
+    display:flex;
+    gap:10px;
+  }
+  .modal-actions .btn{flex:1;}
+
+  @media (max-width:760px){
+    .grid-2{grid-template-columns:1fr;}
+  }
+  @media (max-width:520px){
+    .stats-grid{grid-template-columns:repeat(2, 1fr);}
+    .heatmap-grid{grid-template-columns:repeat(6, 1fr);}
+    .history-item{grid-template-columns:56px 22px 1fr 26px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+<div class="loading-screen" id="loadingScreen">
+  <div class="spinner" role="status" aria-label="Загрузка"></div>
+  <p>Загружаем данные…</p>
+</div>
+
+<div class="wrap" id="app" style="display:none;">
+  <header class="top">
+    <h1>Пульс дня</h1>
+    <p>Твоё самочувствие и задачи — за один взгляд</p>
+  </header>
+
+  <section class="stats-grid" aria-label="Статистика">
+    <div class="glass stat-card streak">
+      <div class="value" id="statStreak">0</div>
+      <div class="label">СТРИК, ДНЕЙ</div>
+    </div>
+    <div class="glass stat-card mood">
+      <div class="value" id="statMood">—</div>
+      <div class="label">НАСТРОЕНИЕ (СРЕД.)</div>
+    </div>
+    <div class="glass stat-card energy">
+      <div class="value" id="statEnergy">—</div>
+      <div class="label">ЭНЕРГИЯ (СРЕД.)</div>
+    </div>
+    <div class="glass stat-card">
+      <div class="value" id="statTotal">0</div>
+      <div class="label">ВСЕГО ЗАПИСЕЙ</div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="glass card">
+      <h2>Как сегодня?</h2>
+      <div class="picker-group">
+        <span class="picker-label">Настроение</span>
+        <div class="picker-row" id="moodPicker" role="radiogroup" aria-label="Настроение"></div>
+      </div>
+      <div class="picker-group">
+        <span class="picker-label">Энергия</span>
+        <div class="picker-row" id="energyPicker" role="radiogroup" aria-label="Энергия"></div>
+      </div>
+      <label class="picker-label" for="noteInput">Заметка (необязательно)</label>
+      <textarea class="note-input" id="noteInput" placeholder="Что повлияло на день?" maxlength="280"></textarea>
+      <button class="btn btn-primary" id="saveBtn" disabled>Сохранить</button>
+      <div class="save-status" id="saveStatus" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="glass card">
+      <h2>Задачи на сегодня <span class="count" id="taskCount">0 / 0</span></h2>
+      <div class="task-input-row">
+        <input type="text" id="taskInput" placeholder="Новая задача…" maxlength="200" aria-label="Новая задача">
+        <button class="btn btn-ghost" id="addTaskBtn">Добавить</button>
+      </div>
+      <ul class="task-list" id="taskList"></ul>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="glass card">
+      <h2>Последние 7 дней</h2>
+      <div class="history-row" id="historyRow"></div>
+    </div>
+
+    <div class="glass card">
+      <h2>Тепловая карта · 30 дней</h2>
+      <div class="heatmap-grid" id="heatmapGrid"></div>
+    </div>
+  </section>
+
+  <div class="danger-zone">
+    <button class="btn btn-danger" id="clearDataBtn">Очистить все данные</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="glass modal">
+    <h3>Удалить всю историю?</h3>
+    <p>Это безвозвратно удалит все записи настроения и все задачи. Отменить это действие будет нельзя.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modalCancel">Отмена</button>
+      <button class="btn btn-danger" id="modalConfirm">Удалить всё</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ENTRIES_KEY = "pulse-entries";
+  var TASKS_KEY = "pulse-tasks";
+
+  var MOOD_OPTIONS = [
+    {v:1, emoji:"😢", label:"Плохо"},
+    {v:2, emoji:"😕", label:"Так себе"},
+    {v:3, emoji:"😐", label:"Нейтрально"},
+    {v:4, emoji:"🙂", label:"Хорошо"},
+    {v:5, emoji:"😄", label:"Отлично"}
+  ];
+  var ENERGY_OPTIONS = [
+    {v:1, emoji:"🪫", label:"Очень низкая"},
+    {v:2, emoji:"🔋", label:"Низкая"},
+    {v:3, emoji:"⚡", label:"Средняя"},
+    {v:4, emoji:"⚡⚡", label:"Высокая"},
+    {v:5, emoji:"🚀", label:"Очень высокая"}
+  ];
+
+  var entries = {};
+  var tasks = {};
+  var selectedMood = null;
+  var selectedEnergy = null;
+
+  function todayKey(){
+    var d = new Date();
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,"0");
+    var day = String(d.getDate()).padStart(2,"0");
+    return y+"-"+m+"-"+day;
+  }
+
+  function dateKeyOffset(offsetDays){
+    var d = new Date();
+    d.setDate(d.getDate() - offsetDays);
+    var y = d.getFullYear();
+    var m = String(d.getMonth()+1).padStart(2,"0");
+    var day = String(d.getDate()).padStart(2,"0");
+    return y+"-"+m+"-"+day;
+  }
+
+  function safeLoad(key){
+    try{
+      var raw = localStorage.getItem(key);
+      return raw ? JSON.parse(raw) : {};
+    }catch(e){
+      console.error("Ошибка чтения хранилища:", e);
+      return {};
+    }
+  }
+
+  function safeSave(key, value){
+    try{
+      localStorage.setItem(key, JSON.stringify(value));
+      return true;
+    }catch(e){
+      console.error("Ошибка записи хранилища:", e);
+      return false;
+    }
+  }
+
+  function showToast(msg, isErr){
+    var t = document.getElementById("toast");
+    t.textContent = msg;
+    t.className = "toast show" + (isErr ? " err" : "");
+    setTimeout(function(){ t.classList.remove("show"); }, 2600);
+  }
+
+  function moodEmoji(v){
+    var found = MOOD_OPTIONS.find(function(o){ return o.v === Math.round(v); });
+    return found ? found.emoji : "—";
+  }
+
+  // ---------- Check-in ----------
+
+  function buildPicker(container, options, isEnergy){
+    container.innerHTML = "";
+    options.forEach(function(opt){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "picker-btn";
+      btn.setAttribute("role","radio");
+      btn.setAttribute("aria-checked","false");
+      btn.setAttribute("aria-label", opt.label);
+      btn.dataset.value = opt.v;
+      btn.innerHTML = '<span>'+opt.emoji+'</span><small>'+opt.v+'</small>';
+      btn.addEventListener("click", function(){
+        if(isEnergy){
+          selectedEnergy = opt.v;
+        } else {
+          selectedMood = opt.v;
+        }
+        updatePickerSelection(container, opt.v, isEnergy);
+        updateSaveButtonState();
+      });
+      container.appendChild(btn);
+    });
+  }
+
+  function updatePickerSelection(container, value, isEnergy){
+    Array.prototype.forEach.call(container.children, function(btn){
+      var match = Number(btn.dataset.value) === value;
+      btn.classList.toggle("selected", match);
+      btn.classList.toggle("energy-selected", match && isEnergy);
+      btn.setAttribute("aria-checked", match ? "true" : "false");
+    });
+  }
+
+  function updateSaveButtonState(){
+    document.getElementById("saveBtn").disabled = !(selectedMood && selectedEnergy);
+  }
+
+  function loadTodayIntoForm(){
+    var key = todayKey();
+    var todayEntry = entries[key];
+    if(todayEntry){
+      selectedMood = todayEntry.mood;
+      selectedEnergy = todayEntry.energy;
+      updatePickerSelection(document.getElementById("moodPicker"), selectedMood, false);
+      updatePickerSelection(document.getElementById("energyPicker"), selectedEnergy, true);
+      document.getElementById("noteInput").value = todayEntry.note || "";
+    }
+    updateSaveButtonState();
+  }
+
+  function handleSave(){
+    if(!selectedMood || !selectedEnergy) return;
+    var key = todayKey();
+    entries[key] = {
+      mood: selectedMood,
+      energy: selectedEnergy,
+      note: document.getElementById("noteInput").value.trim()
+    };
+    var ok = safeSave(ENTRIES_KEY, entries);
+    var statusEl = document.getElementById("saveStatus");
+    if(ok){
+      statusEl.textContent = "Сохранено ✓";
+      statusEl.className = "save-status ok";
+      renderStats();
+      renderHistory();
+      renderHeatmap();
+    } else {
+      statusEl.textContent = "Не удалось сохранить. Попробуйте ещё раз.";
+      statusEl.className = "save-status err";
+      showToast("Ошибка сохранения данных", true);
+    }
+    setTimeout(function(){ statusEl.textContent = ""; statusEl.className = "save-status"; }, 3000);
+  }
+
+  // ---------- Stats ----------
+
+  function renderStats(){
+    var keys = Object.keys(entries);
+    var total = keys.length;
+    document.getElementById("statTotal").textContent = total;
+
+    if(total === 0){
+      document.getElementById("statMood").textContent = "—";
+      document.getElementById("statEnergy").textContent = "—";
+    } else {
+      var sumMood = 0, sumEnergy = 0;
+      keys.forEach(function(k){
+        sumMood += entries[k].mood;
+        sumEnergy += entries[k].energy;
+      });
+      document.getElementById("statMood").textContent = (sumMood/total).toFixed(1);
+      document.getElementById("statEnergy").textContent = (sumEnergy/total).toFixed(1);
+    }
+
+    // streak: consecutive days with entry, counting back from today
+    var streak = 0;
+    var i = 0;
+    while(true){
+      var k = dateKeyOffset(i);
+      if(entries[k]){
+        streak++;
+        i++;
+      } else {
+        break;
+      }
+    }
+    document.getElementById("statStreak").textContent = streak;
+  }
+
+  // ---------- History (7 days) ----------
+
+  var WEEKDAY_LABELS = ["вс","пн","вт","ср","чт","пт","сб"];
+
+  function renderHistory(){
+    var container = document.getElementById("historyRow");
+    var keys = Object.keys(entries);
+    if(keys.length === 0){
+      container.innerHTML = '<div class="empty-state">Пока нет записей. Отметь сегодняшнее настроение, чтобы начать историю 🌱</div>';
+      return;
+    }
+    container.innerHTML = "";
+    for(var i=6; i>=0; i--){
+      var key = dateKeyOffset(i);
+      var entry = entries[key];
+      var d = new Date();
+      d.setDate(d.getDate() - i);
+      var label = (i===0 ? "Сегодня" : WEEKDAY_LABELS[d.getDay()] + " " + d.getDate() + "." + String(d.getMonth()+1).padStart(2,"0"));
+
+      var item = document.createElement("div");
+      item.className = "history-item";
+
+      var dayLabel = document.createElement("div");
+      dayLabel.className = "day-label";
+      dayLabel.textContent = label;
+
+      var emoji = document.createElement("div");
+      emoji.className = "day-emoji";
+      emoji.textContent = entry ? moodEmoji(entry.mood) : "·";
+
+      var track = document.createElement("div");
+      track.className = "history-bar-track";
+      var fill = document.createElement("div");
+      fill.className = "history-bar-fill";
+      fill.style.width = entry ? ((entry.mood/5)*100) + "%" : "0%";
+      track.appendChild(fill);
+
+      var val = document.createElement("div");
+      val.className = "day-val";
+      val.textContent = entry ? entry.mood+"/5" : "—";
+
+      item.appendChild(dayLabel);
+      item.appendChild(emoji);
+      item.appendChild(track);
+      item.appendChild(val);
+      container.appendChild(item);
+    }
+  }
+
+  // ---------- Heatmap (30 days) ----------
+
+  function heatColor(avg){
+    // avg 1..5 -> cool blue to warm amber
+    var t = (avg - 1) / 4;
+    var r = Math.round(91 + t*(255-91));
+    var g = Math.round(140 + t*(180-140));
+    var b = Math.round(255 + t*(84-255));
+    return "rgba("+r+","+g+","+b+",0.55)";
+  }
+
+  function renderHeatmap(){
+    var grid = document.getElementById("heatmapGrid");
+    grid.innerHTML = "";
+    for(var i=29; i>=0; i--){
+      var key = dateKeyOffset(i);
+      var entry = entries[key];
+      var cell = document.createElement("div");
+      cell.className = "heat-cell";
+      var d = new Date();
+      d.setDate(d.getDate() - i);
+      var dateLabel = d.getDate() + "." + String(d.getMonth()+1).padStart(2,"0");
+
+      if(entry){
+        var avg = (entry.mood + entry.energy) / 2;
+        cell.style.background = heatColor(avg);
+        cell.dataset.has = "1";
+        var tip = document.createElement("div");
+        tip.className = "heat-tooltip";
+        tip.textContent = dateLabel + " · настроение "+entry.mood+" · энергия "+entry.energy;
+        cell.appendChild(tip);
+      } else {
+        cell.dataset.has = "0";
+        var tip2 = document.createElement("div");
+        tip2.className = "heat-tooltip";
+        tip2.textContent = dateLabel + " · нет данных";
+        cell.appendChild(tip2);
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  // ---------- Tasks ----------
+
+  function genId(){
+    return "t"+Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  }
+
+  function getTodayTasks(){
+    var key = todayKey();
+    if(!tasks[key]) tasks[key] = [];
+    return tasks[key];
+  }
+
+  function renderTasks(){
+    var list = getTodayTasks();
+    var container = document.getElementById("taskList");
+    var doneCount = list.filter(function(t){ return t.done; }).length;
+    document.getElementById("taskCount").textContent = doneCount + " / " + list.length;
+
+    if(list.length === 0){
+      container.innerHTML = '<li class="empty-state">Добавь первую задачу на сегодня</li>';
+      return;
+    }
+
+    container.innerHTML = "";
+    list.forEach(function(task){
+      var li = document.createElement("li");
+      li.className = "task-item";
+
+      var checkbox = document.createElement("button");
+      checkbox.type = "button";
+      checkbox.className = "task-checkbox" + (task.done ? " done" : "");
+      checkbox.setAttribute("aria-label", task.done ? "Отметить как невыполненное" : "Отметить как выполненное");
+      checkbox.textContent = task.done ? "✓" : "";
+      checkbox.addEventListener("click", function(){ toggleTask(task.id); });
+
+      var text = document.createElement("span");
+      text.className = "task-text" + (task.done ? " done" : "");
+      text.textContent = task.text;
+      text.tabIndex = 0;
+      text.addEventListener("click", function(){ toggleTask(task.id); });
+      text.addEventListener("keydown", function(e){
+        if(e.key === "Enter" || e.key === " "){ e.preventDefault(); toggleTask(task.id); }
+      });
+
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "task-delete";
+      del.setAttribute("aria-label","Удалить задачу");
+      del.textContent = "×";
+      del.addEventListener("click", function(){ deleteTask(task.id); });
+
+      li.appendChild(checkbox);
+      li.appendChild(text);
+      li.appendChild(del);
+      container.appendChild(li);
+    });
+  }
+
+  function persistTasks(){
+    var ok = safeSave(TASKS_KEY, tasks);
+    if(!ok) showToast("Ошибка сохранения задач", true);
+    return ok;
+  }
+
+  function addTask(){
+    var input = document.getElementById("taskInput");
+    var text = input.value.trim();
+    if(!text) return;
+    var list = getTodayTasks();
+    list.push({ id: genId(), text: text, done: false });
+    input.value = "";
+    persistTasks();
+    renderTasks();
+  }
+
+  function toggleTask(id){
+    var list = getTodayTasks();
+    var t = list.find(function(x){ return x.id === id; });
+    if(t){
+      t.done = !t.done;
+      persistTasks();
+      renderTasks();
+    }
+  }
+
+  function deleteTask(id){
+    var key = todayKey();
+    tasks[key] = getTodayTasks().filter(function(x){ return x.id !== id; });
+    persistTasks();
+    renderTasks();
+  }
+
+  // ---------- Clear data ----------
+
+  function openModal(){
+    document.getElementById("modalOverlay").classList.add("show");
+  }
+  function closeModal(){
+    document.getElementById("modalOverlay").classList.remove("show");
+  }
+  function confirmClearAll(){
+    entries = {};
+    tasks = {};
+    safeSave(ENTRIES_KEY, entries);
+    safeSave(TASKS_KEY, tasks);
+    selectedMood = null;
+    selectedEnergy = null;
+    document.getElementById("noteInput").value = "";
+    updatePickerSelection(document.getElementById("moodPicker"), -1, false);
+    updatePickerSelection(document.getElementById("energyPicker"), -1, true);
+    updateSaveButtonState();
+    renderStats();
+    renderHistory();
+    renderHeatmap();
+    renderTasks();
+    closeModal();
+    showToast("Все данные удалены");
+  }
+
+  // ---------- Init ----------
+
+  function init(){
+    entries = safeLoad(ENTRIES_KEY);
+    tasks = safeLoad(TASKS_KEY);
+
+    buildPicker(document.getElementById("moodPicker"), MOOD_OPTIONS, false);
+    buildPicker(document.getElementById("energyPicker"), ENERGY_OPTIONS, true);
+    loadTodayIntoForm();
+
+    document.getElementById("saveBtn").addEventListener("click", handleSave);
+    document.getElementById("addTaskBtn").addEventListener("click", addTask);
+    document.getElementById("taskInput").addEventListener("keydown", function(e){
+      if(e.key === "Enter"){ addTask(); }
+    });
+    document.getElementById("clearDataBtn").addEventListener("click", openModal);
+    document.getElementById("modalCancel").addEventListener("click", closeModal);
+    document.getElementById("modalConfirm").addEventListener("click", confirmClearAll);
+    document.getElementById("modalOverlay").addEventListener("click", function(e){
+      if(e.target === this) closeModal();
+    });
+    document.addEventListener("keydown", function(e){
+      if(e.key === "Escape") closeModal();
+    });
+
+    renderStats();
+    renderHistory();
+    renderHeatmap();
+    renderTasks();
+
+    var loadingScreen = document.getElementById("loadingScreen");
+    var app = document.getElementById("app");
+    setTimeout(function(){
+      loadingScreen.style.opacity = "0";
+      app.style.display = "block";
+      setTimeout(function(){ loadingScreen.style.display = "none"; }, 300);
+    }, 250);
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
+</script>
+
+</body>
+</html>
